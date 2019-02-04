@@ -1,3 +1,5 @@
+https://trello.com/b/stdbZvln/lambdatreasurehunt-jeanettefernandez
+
 # Lambda Treasure Hunt
 
 Welcome to the first annual Lambda Treasure Hunt!
