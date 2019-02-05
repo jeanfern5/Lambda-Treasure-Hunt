@@ -1,15 +1,14 @@
 import React, { Component } from 'react';
-import Init from './components/init'
+import Header from './components/header'
+import LocationInfo from './components/locationInfo'
 import './App.css';
-require('dotenv').config()
-// require('dotenv/config')
-// require('./components/init')
 
 class App extends Component {
   render() {
     return (
       <div className="App">
-        <Init />
+        <Header />
+        <LocationInfo />
       </div>
     );
   };
