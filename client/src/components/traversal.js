@@ -7,21 +7,10 @@ class Traversal extends Component {
     constructor(props) {
         super(props);
         this.state = {
-            "room_id": "",
-            "title": "",
-            "description": "",
-            "coordinates": "",
-            "players": [],
-            "items": [],
-            "exits": [],
-            "cooldown": "",
-            "errors": [],
-            "messages": [],
-            "input": "",
-            "traversalPath": [],
-            "backtrackPath": [],
-            "map": {},
-            "nextRoomId": ""
+            'roomInfo': {},
+            'traversalPath': [],
+            'visitedRoom': {0: {'n': '?', 's': '?', 'e': '?', 'w': '?'}},
+            'inverseDirection': {'n': 's', 's':'n', 'e':'w', 'w':'e'},
         };
     };
 
@@ -29,19 +18,8 @@ class Traversal extends Component {
         axios   
         .get(`${globalURL}/init`, config)
         .then(res => {
-            // console.log('HERE', res.data)
-            this.setState({
-                room_id: res.data.room_id,
-                title: res.data.title,
-                description: res.data.description,
-                coordinates: res.data.coordinates,
-                players: res.data.players,
-                items: res.data.items,
-                exits: res.data.exits,
-                cooldown: res.data.cooldown,
-                errors: res.data.errors,
-                messages: res.data.messages
-            });
+            this.setState({ roomInfo: res.data });
+            // console.log('HERE', this.state.roomInfo)
         })
         .catch(err => {
             console.log('ERROR with INIT URL', err)
@@ -52,21 +30,48 @@ class Traversal extends Component {
         };
     };
 
+    // move = dir => {
+    //     const moveInput = { direction: dir }
+
+    //     axios
+    //     .post(`${globalURL}/move`, moveInput, config)
+    //     .then(res => {
+    //         console.log('THERE', [...res.data.exits])
+    //         this.setState({                    
+    //             room_id: res.data.room_id,
+    //             title: res.data.title,
+    //             description: res.data.description,
+    //             coordinates: res.data.coordinates,
+    //             players: res.data.players,
+    //             items: res.data.items,
+    //             exits: res.data.exits,
+    //             cooldown: res.data.cooldown,
+    //             errors: res.data.errors,
+    //             messages: res.data.messages,
+    //             traversalPath: this.state.traversalPath.concat(this.state.dir)                      
+    //          });
+    //     })
+    //     .catch(err => {
+    //         console.log('ERROR with MOVE URL', err)
+    //     });
+    // };
+
     render() {
         const { moveInput } = this.state;
+        const { room_id, title, description, coordinates, players, items, exits, cooldown, errors, messages } = this.state.roomInfo;
+        // console.log('DOWN HERE', exits.slice(0))
         return(
             <div>
-                <p>Room ID: {this.state.room_id}</p>
-                <p>Title: {this.state.title}</p>
-                <p>Description: {this.state.description}</p>
-                <p>Path: [{this.state.path}]</p>
-                <p>Coordinates: {this.state.coordinates}</p>
-                <p>Players: {this.state.players}</p>
-                <p>Items: {this.state.items}</p>
-                <p>Exits: [{this.state.exits}]</p>
-                <p>Cooldown: {this.state.cooldown}</p>
-                <p>Errors: {this.state.errors}</p>
-                <p>Mesages: {this.state.messages}</p>
+                <p>Room ID: {room_id}</p>
+                <p>Title: {title}</p>
+                <p>Description: {description}</p>
+                <p>Coordinates: {coordinates}</p>
+                <p>Players: {players}</p>
+                <p>Items: {items}</p>
+                <p>Exits: [{exits}]</p>
+                <p>Cooldown: {cooldown}</p>
+                <p>Errors: {errors}</p>
+                <p>Mesages: {messages}</p>
 
                 <Form onSubmit={this.moveSubmit}>
                     <Label>You are moving </Label>
