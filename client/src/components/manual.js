@@ -2,7 +2,8 @@ import React, { Component } from 'react';
 import axios from 'axios';
 import { Input, Form, Label, Button } from 'reactstrap';
 import { config, globalURL} from '../env'
-class LocationInfo extends Component {
+
+class Manual extends Component {
     constructor(props) {
         super(props);
         this.state = {
@@ -16,7 +17,8 @@ class LocationInfo extends Component {
             "cooldown": "",
             "errors": [],
             "messages": [],
-            "input": ""
+            "input": "",
+            "path": []
         };
     };
 
@@ -24,7 +26,7 @@ class LocationInfo extends Component {
         axios   
             .get(`${globalURL}/init`, config)
             .then(res => {
-                console.log('HERE', res)
+                // console.log('HERE', res.data)
                 this.setState({
                     room_id: res.data.room_id,
                     title: res.data.title,
@@ -51,9 +53,9 @@ class LocationInfo extends Component {
         e.preventDefault();
 
         const { input } = this.state;    
-        const moveInput = {direction: input}
+        const moveInput = { direction: input }
 
-        switch (input.toLocaleLowerCase()) {
+        switch(input.toLocaleLowerCase()) {
             case 'n':
             case 'e':
             case 'w':
@@ -61,7 +63,7 @@ class LocationInfo extends Component {
                 axios
                     .post(`${globalURL}/move`, moveInput, config)
                     .then(res => {
-                        console.log('THERE', res.data)
+                        console.log('THERE', this.state.path.concat(this.state.input))
                         this.setState({                    
                             room_id: res.data.room_id,
                             title: res.data.title,
@@ -72,8 +74,9 @@ class LocationInfo extends Component {
                             exits: res.data.exits,
                             cooldown: res.data.cooldown,
                             errors: res.data.errors,
-                            messages: res.data.messages
-                        });
+                            messages: res.data.messages,
+                            path: this.state.path.concat(this.state.input)                      
+                         });
                     })
                     .catch(err => {
                         console.log('ERROR with MOVE URL', err)
@@ -91,10 +94,11 @@ class LocationInfo extends Component {
                 <p>Room ID: {this.state.room_id}</p>
                 <p>Title: {this.state.title}</p>
                 <p>Description: {this.state.description}</p>
+                <p>Path: [{this.state.path}]</p>
                 <p>Coordinates: {this.state.coordinates}</p>
                 <p>Players: {this.state.players}</p>
                 <p>Items: {this.state.items}</p>
-                <p>Exits: {this.state.exits}</p>
+                <p>Exits: [{this.state.exits}]</p>
                 <p>Cooldown: {this.state.cooldown}</p>
                 <p>Errors: {this.state.errors}</p>
                 <p>Mesages: {this.state.messages}</p>
@@ -102,10 +106,10 @@ class LocationInfo extends Component {
                 <Form onSubmit={this.moveSubmit}>
                     <Label>You are moving </Label>
                     <Input type='select' value={moveInput} onChange={this.handleInputChange}>
-                        <option value='n'>up</option>
-                        <option value='s'>down</option>
-                        <option value='e'>right</option>
-                        <option value='w'>left</option>
+                        <option value='n'>north</option>
+                        <option value='s'>south</option>
+                        <option value='e'>east</option>
+                        <option value='w'>west</option>
                     </Input>
                     <Button type='submit'>Submit</Button>
                 </Form>
@@ -114,4 +118,4 @@ class LocationInfo extends Component {
     };
 };
 
-export default LocationInfo;
+export default Manual;

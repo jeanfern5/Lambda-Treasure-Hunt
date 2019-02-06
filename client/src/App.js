@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import Header from './components/header'
-import LocationInfo from './components/locationInfo'
+import Traversal from './components/traversal'
+// import Manual from './components/manual'
 import './App.css';
 
 class App extends Component {
@@ -8,7 +9,8 @@ class App extends Component {
     return (
       <div className="App">
         <Header />
-        <LocationInfo />
+        <Traversal />
+        {/* <Manual /> */}
       </div>
     );
   };
