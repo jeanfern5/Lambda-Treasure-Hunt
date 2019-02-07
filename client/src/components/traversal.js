@@ -1,91 +1,54 @@
 import React, { Component } from 'react';
 import axios from 'axios';
-import { Input, Form, Label, Button } from 'reactstrap';
-import { config, globalURL} from '../env'
+import { globalURL, config } from '../env'
 
 class Traversal extends Component {
-    constructor(props) {
-        super(props);
-        this.state = {
-            'roomInfo': {},
-            'traversalPath': [],
-            'visitedRoom': {0: {'n': '?', 's': '?', 'e': '?', 'w': '?'}},
-            'inverseDirection': {'n': 's', 's':'n', 'e':'w', 'w':'e'},
-        };
+  constructor() {
+    super();
+    this.state = {
+        graph: {},
+        initRoomInfo: {},
+        currRoomInfo: {},
+        timeoutId: 0
     };
+  };
 
-    componentDidMount() {
-        axios   
-        .get(`${globalURL}/init`, config)
-        .then(res => {
-            this.setState({ roomInfo: res.data });
-            // console.log('HERE', this.state.roomInfo)
-        })
-        .catch(err => {
-            console.log('ERROR with INIT URL', err)
-        });
+  componentDidMount() {
+    this.init();
+  };
 
-        if (localStorage.hasOwnProperty('map')) {
-            this.setState({ map: JSON.parse(localStorage.getItem('map')) });
-        };
-    };
+  init() {
+    axios
+      .get(`${globalURL}/init`, config)
+      .then(res => {
+        this.setState({ initRoomInfo: res.data });
+        console.log('INIT URL / initRoomInfo:', this.state.initRoomInfo);
+      })
+      .catch(error => console.log(error));
+  };
 
-    // move = dir => {
-    //     const moveInput = { direction: dir }
+  move(dir) {
+    let movement = { 'direction': dir }
+    axios
+      .post(`${globalURL}/move`, movement , config)
+      .then(res => {
+        this.setState({ currRoomInfo: res.data });
+        console.log('MOVE URL / currRoomInfo:', this.state.currRoomInfo);
+      })
+      .catch(error => console.log(error));
+  };
 
-    //     axios
-    //     .post(`${globalURL}/move`, moveInput, config)
-    //     .then(res => {
-    //         console.log('THERE', [...res.data.exits])
-    //         this.setState({                    
-    //             room_id: res.data.room_id,
-    //             title: res.data.title,
-    //             description: res.data.description,
-    //             coordinates: res.data.coordinates,
-    //             players: res.data.players,
-    //             items: res.data.items,
-    //             exits: res.data.exits,
-    //             cooldown: res.data.cooldown,
-    //             errors: res.data.errors,
-    //             messages: res.data.messages,
-    //             traversalPath: this.state.traversalPath.concat(this.state.dir)                      
-    //          });
-    //     })
-    //     .catch(err => {
-    //         console.log('ERROR with MOVE URL', err)
-    //     });
-    // };
 
-    render() {
-        const { moveInput } = this.state;
-        const { room_id, title, description, coordinates, players, items, exits, cooldown, errors, messages } = this.state.roomInfo;
-        // console.log('DOWN HERE', exits.slice(0))
-        return(
-            <div>
-                <p>Room ID: {room_id}</p>
-                <p>Title: {title}</p>
-                <p>Description: {description}</p>
-                <p>Coordinates: {coordinates}</p>
-                <p>Players: {players}</p>
-                <p>Items: {items}</p>
-                <p>Exits: [{exits}]</p>
-                <p>Cooldown: {cooldown}</p>
-                <p>Errors: {errors}</p>
-                <p>Mesages: {messages}</p>
-
-                <Form onSubmit={this.moveSubmit}>
-                    <Label>You are moving </Label>
-                    <Input type='select' value={moveInput} onChange={this.handleInputChange}>
-                        <option value='n'>north</option>
-                        <option value='s'>south</option>
-                        <option value='e'>east</option>
-                        <option value='w'>west</option>
-                    </Input>
-                    <Button type='submit'>Submit</Button>
-                </Form>
-            </div>
-        );
-    };
-};
+  render() {
+    return (
+      <div>
+        <button onClick={() => this.move('w')}>West</button>
+        <button onClick={() => this.move('n')}>North</button>
+        <button onClick={() => this.move('s')}>South</button>
+        <button onClick={() => this.move('e')}>East</button>
+      </div>
+    );
+  }
+}
 
 export default Traversal;
