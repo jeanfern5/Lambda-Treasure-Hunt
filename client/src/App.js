@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import Header from './components/header'
 import Traversal from './components/traversal'
-// import Manual from './components/manual'
+import Map from './components/map'
 import './App.css';
 
 class App extends Component {
@@ -10,7 +10,7 @@ class App extends Component {
       <div className="App">
         <Header />
         <Traversal />
-        {/* <Manual /> */}
+        <Map />
       </div>
     );
   };
