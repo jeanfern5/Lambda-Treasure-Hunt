@@ -13,12 +13,6 @@ export default class Traversal extends Component {
         playerInfo: {},
         currRoom: 0,
     };
-    this.init = this.init.bind(this);
-    this.move = this.move.bind(this);
-    this.inverseDir = this.inverseDir.bind(this);
-    this.automatedTraversal = this.automatedTraversal.bind(this);
-    this.localStorageGraph = this.localStorageGraph.bind(this);
-    // this.generateVisual = this.generateVisual.bing(this);
   };
 
   componentDidMount() {
@@ -32,7 +26,7 @@ export default class Traversal extends Component {
 
 
   // API Calls------------------------------------------------------------------------------------------------
-  // status() {
+  // status = () => {
   //   axios
   //   .post(`${globalURL}/status`, config)
   //   .then(res => {
@@ -42,7 +36,14 @@ export default class Traversal extends Component {
   //   .catch(error => console.log(error));
   // };
 
-  init() {
+  wait = (time) => {
+    return new Promise(resolve => {
+        setTimeout(() => {resolve()}, time);
+    });
+  };
+
+  async init() {
+    await this.wait(1500);
     axios
       .get(`${globalURL}/init`, config)
       .then(res => {
@@ -55,9 +56,10 @@ export default class Traversal extends Component {
       .catch(error => console.log(error));
   };
 
-  move(dir) {
+  async move(dir) {
+    await this.wait(1500);
     let movement = { 'direction': dir }
-
+    console.log("about to move... : " , dir);
     axios
       .post(`${globalURL}/move`, movement , config)
       .then(res => {
@@ -68,58 +70,74 @@ export default class Traversal extends Component {
   };
 
 
-  //Traversal Functionality----------------------------------------------------------------------
-  inverseDir(dir){
+
+
+  //Traversal Functionality---------------------------------------------------------------------------------------------------------------------------------------------
+  inverseDir = (dir) => {
     if (dir === 'n'){
       return 's'
     }
-    if (dir === 's'){
+    else if (dir === 's'){
       return 'n'
     }
-    if (dir === 'e'){
+    else if (dir === 'e'){
       return 'w'
     }
-    if (dir === 'w'){
+    else if (dir === 'w'){
       return 'e'
     }
   };
   
-  automatedTraversal = () => {
-    const { room_id, exits, cooldown } = this.state.currRoomInfo;
+  async automatedTraversal() {
     let traversalPath = [];
     let backtrackPath = [];
     let visitedRooms = {};
    
-    visitedRooms[room_id] = exits;
-    
-    while (Object.keys(visitedRooms).length < 499) {
-      console.log('HERE', visitedRooms)
-      if (!visitedRooms[room_id]) {
-        visitedRooms[room_id] = exits;
-        visitedRooms[room_id].delete(backtrackPath[backtrackPath.length-1])
+    visitedRooms[this.state.currRoomInfo.room_id] = this.state.currRoomInfo.exits;
+    // console.log('INITIAL', visitedRooms[this.state.currRoomInfo.room_id])
+    var num = 0
+    while (num < 6) {
+       console.log('LENGTH', Object.keys(visitedRooms).length)
+       console.log('Check', this.state.currRoomInfo.room_id, 'obj', visitedRooms)
+    // while (Object.keys(visitedRooms).length < 2) {
+      // console.log('WHILE OUTER', visitedRooms)
+      console.log("WHAT is this ", this.state.currRoomInfo.exits);
+      
+      if (!(this.state.currRoomInfo.room_id in visitedRooms)) {
+        console.log('IF HERE', this.state.currRoomInfo.room_id, visitedRooms)
+        visitedRooms[this.state.currRoomInfo.room_id] = this.state.currRoomInfo.exits;
+        console.log(visitedRooms)
+        // visitedRooms[this.state.currRoomInfo.room_id].delete(backtrackPath[backtrackPath.length-1])
       };
-
-      while(visitedRooms[room_id].length === 0 && backtrackPath.length > 0){
+      
+      while(visitedRooms[this.state.currRoomInfo.room_id].length === 0 && backtrackPath.length > 0){
+        console.log('WOOOOOOOOOO')
         let backtrack =  backtrackPath.pop();
         traversalPath.push(backtrack);
 
-        this.move(backtrack);
-        this.init();
+        await this.move(backtrack);
+        await this.init();
       };
 
-      let moveDir = visitedRooms[room_id].shift()
-      traversalPath.push(moveDir);
-      console.log('traversed')
-      backtrackPath.push(this.inverseDir(moveDir));
-      console.log('backtrack')
 
-      setTimeout(this.move(moveDir), (cooldown * 1000));
-      this.init();     
-    };
-    console.log('TRAVERSED ROOMS:', traversalPath)
+      let moveDir = visitedRooms[this.state.currRoomInfo.room_id].shift()
+      console.log(moveDir)
+
+      console.log('WOOOO', moveDir)
+      traversalPath.push(moveDir);
+      // console.log('traversed', traversalPath)
+      backtrackPath.push(this.inverseDir(moveDir));
+      // console.log('backtrack', backtrackPath)
+
+      //this.init();
+      // setTimeout(this.move(moveDir), (this.state.currRoomInfo.cooldown * 1000));
+      await this.move(moveDir)
+      await this.init();
+      num = num + 1     
+    };    
   };
   
-  // bfsPathToUnexplored() {
+  // bfsPathToUnexplored = () => {
   //   // Breadth-First Search Shortest Path To Unexplored Exits
   //   const { currRoomInfo, graph } = this.state;
 
@@ -151,7 +169,7 @@ export default class Traversal extends Component {
   //   return []
   // };
 
-  // traversedRooms(backtrackPath) {
+  // traversedRooms = (backtrackPath) => {
   //   const { graph } = this.state;
 
   //   let currentRoom = backtrackPath[0];
@@ -170,13 +188,13 @@ export default class Traversal extends Component {
   // };
 
   // //examine more
-  // automatedTraversal() {
+  // automatedTraversal = () => {
   //   let graph = this.localStorageGraph()
   //   let traversalPath = []
   // }
 
 //Local Storage-------------------------------------------------------------------------------------------------------
-localStorageGraph(id, coords, exits) {
+localStorageGraph = (id, coords, exits) => {
 // const { graph } = this.state;
 // const inverseDir = { n: 's', s: 'n', e: 'w', w: 'e' };
 let graph = Object.assign({}, this.state.graph);
@@ -235,7 +253,7 @@ return graph;
         <button onClick={() => this.move('n')}>North</button>
         <button onClick={() => this.move('s')}>South</button>
         <button onClick={() => this.move('e')}>East</button>
-        <button onClick={(event) => this.automatedTraversal(event)}>Automated Traversal</button>
+        <button onClick={(dir) => this.automatedTraversal(dir)}>Automated Traversal</button>
       </div>
     );
   };
