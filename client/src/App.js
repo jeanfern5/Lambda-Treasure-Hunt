@@ -1,19 +1,22 @@
 import React, { Component } from 'react';
+import styled from 'styled-components';
 import Header from './components/header'
-import Traversal from './components/traversal'
-// import Map from './components/map'
+import Content from './components/content'
+import Visualization from './components/visualization'
 import './App.css';
 
-class App extends Component {
+export default class App extends Component {
   render() {
     return (
       <div className="App">
         <Header />
-        <Traversal />
-        {/* <Map /> */}
+        <Content />
+        <Visualization />
       </div>
     );
   };
 };
 
-export default App;
+//Styled-Components----------------------------------------------------------------------------------------------------
+
+

@@ -1,10 +1,10 @@
 import React, { Component } from 'react';
 import axios from 'axios';
 import { globalURL, config } from '../env'
-// import CytoscapeComponent from 'react-cytoscapejs';
+import styled from 'styled-components';
 
 
-export default class Traversal extends Component {
+export default class Content extends Component {
   constructor() {
     super();
     this.state = {
@@ -87,7 +87,7 @@ export default class Traversal extends Component {
     }
   };
   
-  async automatedTraversal() {
+  async autoTraversal() {
     let wait = (time) => new Promise(resolve => setTimeout(resolve, time));
     console.log('waiting......', )
     let move = (dir) => new Promise(resolve => this.moveAuto(resolve, dir));
@@ -166,20 +166,6 @@ return graph;
 
 };
 
-//React Cytoscape-----------------------------------------------------------------------------------------------------
-// generateVisual() {
-//   const { coordinates } = this.state.currRoomInfo;
-//   const rooms = [];
-//   const edges = [];
-
-//   for (let room in coordinates) {
-//     const coordInfo = {
-//       data: { id: room, label: `room ${room}`}, position:
-//       { x: (coordinates)}
-//     }
-//   }
-// }
-
 //Render--------------------------------------------------------------------------------------------------------------
   render() {
     const { room_id, title, description,players, items, exits, cooldown, errors, messages } = this.state.currRoomInfo
@@ -198,7 +184,7 @@ return graph;
         <button onClick={() => this.move('n')}>North</button>
         <button onClick={() => this.move('s')}>South</button>
         <button onClick={() => this.move('e')}>East</button>
-        <button onClick={(dir) => this.automatedTraversal(dir)}>Automated Traversal</button>
+        <button onClick={(dir) => this.autoTraversal(dir)}>Auto Traversal</button>
       </div>
     );
   };
