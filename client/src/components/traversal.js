@@ -11,7 +11,6 @@ export default class Traversal extends Component {
         graph: {},
         currRoomInfo: {},
         playerInfo: {},
-        currRoom: 0,
     };
   };
 
@@ -26,48 +25,48 @@ export default class Traversal extends Component {
 
 
   // API Calls------------------------------------------------------------------------------------------------
-  // status = () => {
-  //   axios
-  //   .post(`${globalURL}/status`, config)
-  //   .then(res => {
-  //     this.setState({ currRoomInfo: res.data });
-  //     console.log('STATUS URL / playerInfo:', this.state.currRoomInfo);
-  //   })
-  //   .catch(error => console.log(error));
-  // };
-
-  wait = (time) => {
-    return new Promise(resolve => {
-        setTimeout(() => {resolve()}, time);
-    });
-  };
-
-  async init() {
-    await this.wait(1500);
+  init() {
     axios
       .get(`${globalURL}/init`, config)
       .then(res => {
-        const { room_id, coordinates, exits } = res.data;
-        let graph = this.localStorageGraph(room_id, coordinates, exits)
-        this.setState({ currRoomInfo: res.data, graph });
-
-        console.log('INIT URL / currRoomInfo:', this.state.currRoomInfo);
+        this.setState({ currRoomInfo: res.data });
+        console.log('INIT URL:', this.state.currRoomInfo);
       })
       .catch(error => console.log(error));
   };
 
-  async move(dir) {
-    await this.wait(1500);
+  move(dir) {
+    console.log('Should be waiting.....')
     let movement = { 'direction': dir }
-    console.log("about to move... : " , dir);
+
     axios
       .post(`${globalURL}/move`, movement , config)
       .then(res => {
-        this.setState({ currRoomInfo: res.data });
-        console.log('MOVE URL / currRoomInfo:', this.state.currRoomInfo);
+        const { room_id, coordinates, exits } = res.data;
+        let graph = this.localStorageGraph(room_id, coordinates, exits)
+
+        this.setState({ currRoomInfo: res.data, graph });
+        console.log('MOVE URL:', this.state.currRoomInfo);
       })
       .catch(error => console.log(error));
-  };
+    }; 
+
+  moveAuto(time, dir) {
+    console.log('Should be waiting.....')
+    let movement = { 'direction': dir }
+
+    axios
+      .post(`${globalURL}/move`, movement , config)
+      .then(res => {
+        const { room_id, coordinates, exits } = res.data;
+        let graph = this.localStorageGraph(room_id, coordinates, exits)
+
+        this.setState({ currRoomInfo: res.data, graph });
+        console.log('MOVE URL:', this.state.currRoomInfo);
+        time();
+      })
+      .catch(error => console.log(error));
+    }; 
 
 
 
@@ -89,110 +88,56 @@ export default class Traversal extends Component {
   };
   
   async automatedTraversal() {
+    let wait = (time) => new Promise(resolve => setTimeout(resolve, time));
+    console.log('waiting......', )
+    let move = (dir) => new Promise(resolve => this.moveAuto(resolve, dir));
+
     let traversalPath = [];
     let backtrackPath = [];
     let visitedRooms = {};
    
     visitedRooms[this.state.currRoomInfo.room_id] = this.state.currRoomInfo.exits;
-    // console.log('INITIAL', visitedRooms[this.state.currRoomInfo.room_id])
-    var num = 0
-    while (num < 6) {
-       console.log('LENGTH', Object.keys(visitedRooms).length)
-       console.log('Check', this.state.currRoomInfo.room_id, 'obj', visitedRooms)
-    // while (Object.keys(visitedRooms).length < 2) {
-      // console.log('WHILE OUTER', visitedRooms)
-      console.log("WHAT is this ", this.state.currRoomInfo.exits);
-      
+
+
+    while (Object.keys(visitedRooms).length < 500) {
+      console.log('vistedROOMS LENGTH', Object.keys(visitedRooms).length)
+      console.log('TRACKING', visitedRooms);
       if (!(this.state.currRoomInfo.room_id in visitedRooms)) {
-        console.log('IF HERE', this.state.currRoomInfo.room_id, visitedRooms)
         visitedRooms[this.state.currRoomInfo.room_id] = this.state.currRoomInfo.exits;
-        console.log(visitedRooms)
-        // visitedRooms[this.state.currRoomInfo.room_id].delete(backtrackPath[backtrackPath.length-1])
+
+        let last_backtrack_val = backtrackPath[backtrackPath.length-1]
+        let last_backtrack_val_index = visitedRooms[this.state.currRoomInfo.room_id].indexOf(last_backtrack_val)
+        console.log('VISITED ROOM', visitedRooms)
+        console.log('ROOM', this.state.currRoomInfo.room_id, 'REMOVE', last_backtrack_val)
+        delete visitedRooms[this.state.currRoomInfo.room_id].splice(last_backtrack_val_index, 1);
+      }
+      else if (visitedRooms[this.state.currRoomInfo.room_id].length === 0 && backtrackPath.length > 0 ) {
+          let backtrackDir = backtrackPath.pop();
+        traversalPath.push(backtrackDir);
+
+        console.log("about to move... (backtrack): " , backtrackDir, 'from room', this.state.currRoomInfo.room_id);
+        await wait(this.state.currRoomInfo.cooldown * 2000);
+        console.log('waiting in else if......', this.state.currRoomInfo.cooldown * 2000)
+        await move(backtrackDir);
+      }
+      else {
+          let moveDir = visitedRooms[this.state.currRoomInfo.room_id].shift()
+        console.log('ROOM', this.state.currRoomInfo.room_id, 'MOVE&REMOVE', moveDir)
+        traversalPath.push(moveDir);
+        backtrackPath.push(this.inverseDir(moveDir));
+
+        console.log("about to move... (move): " , moveDir,'from room', this.state.currRoomInfo.room_id);
+        await wait(this.state.currRoomInfo.cooldown * 2000);
+        console.log('waiting in else......', this.state.currRoomInfo.cooldown * 2000)
+        await move(moveDir);
       };
-      
-      while(visitedRooms[this.state.currRoomInfo.room_id].length === 0 && backtrackPath.length > 0){
-        console.log('WOOOOOOOOOO')
-        let backtrack =  backtrackPath.pop();
-        traversalPath.push(backtrack);
-
-        await this.move(backtrack);
-        await this.init();
-      };
-
-
-      let moveDir = visitedRooms[this.state.currRoomInfo.room_id].shift()
-      console.log(moveDir)
-
-      console.log('WOOOO', moveDir)
-      traversalPath.push(moveDir);
-      // console.log('traversed', traversalPath)
-      backtrackPath.push(this.inverseDir(moveDir));
-      // console.log('backtrack', backtrackPath)
-
-      //this.init();
-      // setTimeout(this.move(moveDir), (this.state.currRoomInfo.cooldown * 1000));
-      await this.move(moveDir)
-      await this.init();
-      num = num + 1     
-    };    
+    };  
+    console.log('!!!!!!WHILE LOOP ENDED!!!!!!')
+    console.log(Object.keys(visitedRooms).length, "ROOMS VISITED")
+    console.log('TRAVERSED PATH', traversalPath)  
+    console.log('BACKTRACK PATH', backtrackPath) 
   };
   
-  // bfsPathToUnexplored = () => {
-  //   // Breadth-First Search Shortest Path To Unexplored Exits
-  //   const { currRoomInfo, graph } = this.state;
-
-  //   let queue = [];
-  //   let visitedRoom = new Set();
-
-  //   // js Array.from() === python list()
-  //   queue.push(Array.from(currRoomInfo.room_id));
-  //   while (queue.length > 0) {
-  //     // js shift() === python pop(0)
-  //     let path = queue.shift();
-  //     let room = path[path.length-1];
-  //     if (!(visitedRoom.has(room))) {  
-  //     // if (!(room in visitedRoom)) {
-  //       console.log('HERE', visitedRoom)
-  //       visitedRoom.add(room);
-  //       for (let exit in graph[room]) {
-  //         if (graph[room][exit] === '?') {
-  //           return path;
-  //         } 
-  //         else {
-  //           let duplicatePath = Array.from(path);
-  //           duplicatePath.push(graph[room][exit]);
-  //           queue.push(duplicatePath);
-  //         };
-  //       };
-  //     };
-  //   };
-  //   return []
-  // };
-
-  // traversedRooms = (backtrackPath) => {
-  //   const { graph } = this.state;
-
-  //   let currentRoom = backtrackPath[0];
-  //   let exploredExits = [];
-
-  //   for (let room in backtrackPath.slice(1, backtrackPath.length)) {
-  //     for (let exit in graph[currentRoom]) {
-  //       if (graph[currentRoom][exit] === room) {
-  //         exploredExits.push(exit);
-  //         currentRoom = room;
-  //         break
-  //       };
-  //     };
-  //   };
-  //   return exploredExits;
-  // };
-
-  // //examine more
-  // automatedTraversal = () => {
-  //   let graph = this.localStorageGraph()
-  //   let traversalPath = []
-  // }
-
 //Local Storage-------------------------------------------------------------------------------------------------------
 localStorageGraph = (id, coords, exits) => {
 // const { graph } = this.state;
@@ -200,8 +145,8 @@ localStorageGraph = (id, coords, exits) => {
 let graph = Object.assign({}, this.state.graph);
 if (!this.state.graph[id]) {
   let mapping = [];
+  let roomExits = {};
   mapping.push(coords);
-  const roomExits = {};
   exits.forEach(exit => {roomExits[exit] = '?'});
   mapping.push(roomExits);
 
